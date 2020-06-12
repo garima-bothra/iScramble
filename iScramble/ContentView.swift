@@ -10,44 +10,47 @@ import SwiftUI
 
 struct ContentView: View {
 
+    //MARK: Variables
     @State private var usedWords = [String]()
     @State private var rootWord = ""
     @State private var newWord = ""
-
+    @State private var score = 0
     @State private var errorTitle = ""
     @State private var errorMessage = ""
     @State private var showingError = false
 
     var body: some View {
+        //MARK: Navigation View
         NavigationView {
-               VStack {
-                   TextField("Enter your word", text: $newWord, onCommit: addNewWord)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-                .autocapitalization(.none)
-                   List(usedWords, id: \.self) {
+            VStack {
+                TextField("Enter your word", text: $newWord, onCommit: addNewWord)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+                    .autocapitalization(.none)
+                List(usedWords, id: \.self) {
                     Image(systemName: "\($0.count).circle")
                     Text($0)
-                   }
-               }
-               .navigationBarTitle(rootWord)
-        .navigationBarItems(trailing:
-            Button("Reset"){
-                self.startGame()
-                self.usedWords = []
-        })
-               .onAppear(perform: startGame)
-            .alert(isPresented: $showingError) {
-                Alert(title: Text(errorTitle), message: Text(errorMessage), dismissButton: .default(Text("OK")))
+                }
+                Text("Your Score is: \(score)")
+                    .padding()
+                    .font(.largeTitle)
             }
-           }
+            .navigationBarTitle(rootWord)
+            .navigationBarItems(trailing:
+                Button("Reset"){
+                    self.startGame()
+            })
+                .onAppear(perform: startGame)
+                .alert(isPresented: $showingError) {
+                    Alert(title: Text(errorTitle), message: Text(errorMessage), dismissButton: .default(Text("OK")))
+            }
+        }
     }
 
+    //MARK: Add new word to list
     func addNewWord() {
-        // lowercase and trim the word, to make sure we don't add duplicate words with case differences
         let answer = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // exit if the remaining string is empty
         guard answer.count > 0 else {
             return
         }
@@ -73,11 +76,14 @@ struct ContentView: View {
         }
 
         usedWords.insert(answer, at: 0)
+        score += answer.count
         newWord = ""
     }
 
+    //MARK: Start/Restart the game
     func startGame() {
-
+        self.usedWords = []
+        self.score = 0
         if let startWordsURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let startWords = try? String(contentsOf: startWordsURL) {
                 let allWords = startWords.components(separatedBy: "\n")
@@ -89,10 +95,12 @@ struct ContentView: View {
         fatalError("Could not load start.txt from bundle.")
     }
 
+    //MARK: Check if word is original
     func isOriginal(word: String) -> Bool {
         return !usedWords.contains(word)
     }
 
+    //MARK: Check if word is possible
     func isPossible(word: String) -> Bool {
         var copyWord = rootWord
         for letter in word {
@@ -105,10 +113,12 @@ struct ContentView: View {
         return true
     }
 
+    //MARK: Check if word length is valid
     func isLengthValid(word: String) -> Bool {
-       return word.count < 3 ? false : true
+        return word.count < 3 ? false : true
     }
 
+    //MARK: Check if word is real
     func isReal(word: String) -> Bool {
         let checker = UITextChecker()
         let range = NSRange(location: 0, length: word.utf16.count)
@@ -116,6 +126,7 @@ struct ContentView: View {
         return misspelledRange.location == NSNotFound
     }
 
+    //MARK: Display error alert
     func wordError(title: String, message: String) {
         errorTitle = title
         errorMessage = message
