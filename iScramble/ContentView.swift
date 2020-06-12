@@ -52,6 +52,11 @@ struct ContentView: View {
             return
         }
 
+        guard isLengthValid(word: answer) else {
+            wordError(title: "Word not possible", message: "Word length cannot be below three!")
+            return
+        }
+
         guard isOriginal(word: answer) else {
             wordError(title: "Word used already", message: "Be more original")
             return
@@ -95,11 +100,14 @@ struct ContentView: View {
         return true
     }
 
+    func isLengthValid(word: String) -> Bool {
+       return word.count < 3 ? false : true
+    }
+
     func isReal(word: String) -> Bool {
         let checker = UITextChecker()
         let range = NSRange(location: 0, length: word.utf16.count)
         let misspelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
-
         return misspelledRange.location == NSNotFound
     }
 
