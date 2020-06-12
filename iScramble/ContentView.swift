@@ -31,6 +31,11 @@ struct ContentView: View {
                    }
                }
                .navigationBarTitle(rootWord)
+        .navigationBarItems(trailing:
+            Button("Reset"){
+                self.startGame()
+                self.usedWords = []
+        })
                .onAppear(perform: startGame)
             .alert(isPresented: $showingError) {
                 Alert(title: Text(errorTitle), message: Text(errorMessage), dismissButton: .default(Text("OK")))
