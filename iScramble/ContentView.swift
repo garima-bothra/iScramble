@@ -14,6 +14,10 @@ struct ContentView: View {
     @State private var rootWord = ""
     @State private var newWord = ""
 
+    @State private var errorTitle = ""
+    @State private var errorMessage = ""
+    @State private var showingError = false
+
     var body: some View {
         NavigationView {
                VStack {
@@ -28,6 +32,9 @@ struct ContentView: View {
                }
                .navigationBarTitle(rootWord)
                .onAppear(perform: startGame)
+            .alert(isPresented: $showingError) {
+                Alert(title: Text(errorTitle), message: Text(errorMessage), dismissButton: .default(Text("OK")))
+            }
            }
     }
 
@@ -40,7 +47,20 @@ struct ContentView: View {
             return
         }
 
-        // extra validation to come
+        guard isPossible(word: answer) else {
+            wordError(title: "Word not recognized", message: "You can't just make them up, you know!")
+            return
+        }
+
+        guard isOriginal(word: answer) else {
+            wordError(title: "Word used already", message: "Be more original")
+            return
+        }
+
+        guard isReal(word: answer) else {
+            wordError(title: "Word not possible", message: "That isn't a real word.")
+            return
+        }
 
         usedWords.insert(answer, at: 0)
         newWord = ""
@@ -60,7 +80,7 @@ struct ContentView: View {
     }
 
     func isOriginal(word: String) -> Bool {
-        return usedWords.contains(word)
+        return !usedWords.contains(word)
     }
 
     func isPossible(word: String) -> Bool {
@@ -82,7 +102,13 @@ struct ContentView: View {
 
         return misspelledRange.location == NSNotFound
     }
-    
+
+    func wordError(title: String, message: String) {
+        errorTitle = title
+        errorMessage = message
+        showingError = true
+    }
+
 }
 
 struct ContentView_Previews: PreviewProvider {
